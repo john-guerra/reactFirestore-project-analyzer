@@ -6,12 +6,14 @@ import {
   getDocs,
   doc,
   updateDoc,
+  query,
+  where,
 } from "firebase/firestore/lite";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 function MyFireStoreHandler() {
-  console.log("🐣 MyFireStoreHandler");
   const myFireStore = {};
   // Your web app's Firebase configuration
   const firebaseConfig = {
@@ -25,32 +27,12 @@ function MyFireStoreHandler() {
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-
   const db = getFirestore(app);
-
-  let projectsPromise = null;
-
-  async function getProjectsPromise() {
-    if (projectsPromise) {
-      return projectsPromise;
-    }
-
-    try {
-      const projectsCol = collection(db, "projects");
-      projectsPromise = await getDocs(projectsCol);
-      return projectsPromise;
-    } catch (error) {
-      console.error("Error getting projects:", error);
-      throw error;
-    } finally {
-      projectsPromise = null;
-    }
-  }
 
   // Get a list of cities from your database
   async function getProjects() {
-    console.log("✅ myDB.getProjects", projectsPromise);
-    const projectSnapshot = await getProjectsPromise();
+    const projectsCol = collection(db, "projects");
+    const projectSnapshot = await getDocs(projectsCol);
     console.log("projectSnapshot", projectSnapshot);
 
     const projectList = projectSnapshot.docs.map((doc) => ({
@@ -72,8 +54,19 @@ function MyFireStoreHandler() {
     }
   }
 
+  async function getAuthors() {
+    const authorsCol = collection(db, "authors");
+
+    const authorsSnapshot = await getDocs(authorsCol);
+    const authorsList = authorsSnapshot.docs.map((doc) => doc.data());
+
+    console.log("authorsList", authorsList);
+    return authorsList;
+  }
+
   myFireStore.getProjects = getProjects;
   myFireStore.updateProject = updateProject;
+  myFireStore.getAuthors = getAuthors;
   myFireStore.db = db;
 
   return myFireStore;
